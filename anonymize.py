@@ -3,18 +3,16 @@ from pprint import pprint
 import cv2
 import numpy as np
 import argparse
+from os import listdir
+import os.path
 
-input_folder = 'inps/'
+ACCEPTED_FORMATS = ['png', 'PNG', 'jpg', 'jpeg', 'JPG', 'JPEG', 'HEIC']
 
 
 # Finds data of all faces in the image.
 def find_faces(path):
     embeddings = DeepFace.represent(img_path = path)
 
-    #vec = embeddings[0]['embedding']
-    #face = embeddings[0]['facial_area']
-
-    #return vec, face
     return embeddings
 
 
@@ -32,23 +30,32 @@ def draw_face_rect(img_path, face_area):
 
 # Checks if a face is similar (enough) to the main face.
 # Accepted modes: cosine or euclidean.
-def is_similar(main_face, check_face, mode='cosine'):
-    if mode == 'cosine':
+def is_similar(main_face, check_face):
+    if rec_mode == 'cosine':
         cs = np.dot(main_face, check_face) / (np.linalg.norm(main_face) * np.linalg.norm(check_face))
         print(cs)
         if cs >= 0.6:
             return True
         else:
             return False
-    elif mode == 'euclidean':
+    elif rec_mode == 'euclidean':
         ed = np.linalg.norm(main_face - check_face)
         print(ed)
         if ed < 0.5:
             return True
         else:
             return False
-    return NotImplementedError
 
+
+def accepted_file(filename):
+    try:
+        suffix = filename.split('.')[-1]
+    except Exception as e:
+        return False
+    if suffix in ACCEPTED_FORMATS:
+        return True
+    else:
+        return False
 # --------------------------------------------------------
 
 if __name__ == '__main__':
@@ -74,18 +81,22 @@ if __name__ == '__main__':
         rec_mode = 'cosine'
     else:
         rec_mode = 'euclidean'
-    #mainFaceV = find_faces(f'{input_folder}ravi_pep.JPG')[0]['embedding']
-    #faces = find_faces(f'{input_folder}ravi_daan.JPG')
-    #for i, face in enumerate(faces):
-    #    v = face["embedding"]
-    #    fa = face["facial_area"]
-    #    print("drawing face", i)
-    #    # If face is not similar, break.
-    #    if not is_similar(np.array(mainFaceV), np.array(v), mode='euclidean') :
-    #        continue
-    #    im = draw_face_rect(f'{input_folder}ravi_daan.JPG', fa)
-    #    cv2.imwrite(f"rect{i}.png", im)
 
 
-
+    targetFaceV = find_faces(target_im)[0]['embedding']
+    for f in listdir(inp_folder):
+        path = os.path.join(inp_folder, f)
+        if not os.path.isfile(path) or not accepted_file(f):
+            continue
+        print('scanning', f)
+        faces = find_faces(path)
+        for i, face in enumerate(faces):
+            v = face["embedding"]
+            fa = face["facial_area"]
+            # If face is not similar, break.
+            if not is_similar(np.array(targetFaceV), np.array(v)) :
+                continue
+            print('Found face')
+            im = draw_face_rect(path, fa)
+            cv2.imwrite(os.path.join(outp_folder, f), im)
 
