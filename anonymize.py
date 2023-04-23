@@ -55,6 +55,19 @@ def is_similar(main_face, check_face):
         else:
             return False
 
+# Picks the largest face from the image.
+def get_target():
+    faces = find_faces(target_im)
+    largest_size = 0
+    for face in faces:
+        v = face['embedding']
+        fa = face['facial_area']
+        if fa['w'] > largest_size:
+            size = fa['w']
+            best_fit = v
+
+    return best_fit
+
 
 def accepted_file(filename):
     try:
@@ -90,44 +103,40 @@ if __name__ == '__main__':
         rec_mode = 'cosine'
     else:
         rec_mode = 'euclidean'
-
+    
+    # Creates output folder if this folder does not exist yet.
     if not os.path.exists(outp_folder):
         os.makedirs(outp_folder)
 
     # Get target face vector.
-    targetFace = find_faces(target_im)
-    found = False
-    for i, face in enumerate(targetFace):
-        targetFaceV = face['embedding']
-        fa = face['facial_area']
-        if fa['w'] > 500 and fa['h'] > 500:
-            found = True
-            break
-    if not found:
-        print("No valid face detected in target image. Exiting.")
-        exit()
+    targetFaceV = get_target()
 
     for f in listdir(inp_folder):
         path = os.path.join(inp_folder, f)
+        # If current file is not a supported file type, skip it.
         if not os.path.isfile(path) or not accepted_file(f):
             continue
         print('scanning', f)
+        # Finds faces in current image.
         try:
             faces = find_faces(path)
         except Exception as e:
             print("No faces found")
             cv2.imwrite(os.path.join(outp_folder, f), cv2.imread(path))
             continue
+
+        # Draws face - NEEDS TO BE BLUR - for every similar face found.
         im = None
         for i, face in enumerate(faces):
             v = face["embedding"]
             fa = face["facial_area"]
-            # If face is not similar, break.
+            # If face is not similar, skip it.
             if not is_similar(np.array(targetFaceV), np.array(v)) :
                 continue
             print('Found face')
             im = draw_face_rect(path, fa, img=im)
-
+        
+        # Save image.
         if im is not None:
             cv2.imwrite(os.path.join(outp_folder, f), im)
         else:
