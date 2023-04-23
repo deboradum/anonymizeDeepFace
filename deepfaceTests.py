@@ -2,6 +2,8 @@ from deepface import DeepFace
 from pprint import pprint
 import cv2
 import numpy as np
+import argparse
+
 input_folder = 'inps/'
 
 
@@ -48,17 +50,41 @@ def is_similar(main_face, check_face, mode='cosine'):
     return NotImplementedError
 
 # --------------------------------------------------------
-mainFaceV = find_faces(f'{input_folder}ravi_pep.JPG')[0]['embedding']
-faces = find_faces(f'{input_folder}ravi_daan.JPG')
-for i, face in enumerate(faces):
-    v = face["embedding"]
-    fa = face["facial_area"]
-    print("drawing face", i)
-    # If face is not similar, break.
-    if not is_similar(np.array(mainFaceV), np.array(v), mode='cosine') :
-        continue
-    im = draw_face_rect(f'{input_folder}ravi_daan.JPG', fa)
-    cv2.imwrite(f"rect{i}.png", im)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t','--target', help='Image path containing target face.', required=True)
+    parser.add_argument('-i','--input', help='Folder path containing images to check against.', required=True)
+    parser.add_argument('-o','--output', help='Name of the folder containing the output images.', default='ouput')
+    parser.add_argument('-b','--blur', help='Blur mode: True to blur target face, False to blur all faces except target face. Default is True.', default=True)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-c','--cosine', action='store_true', help='Cosine similarity as face recognition mode.')
+    group.add_argument('-e','--euclidean', action='store_true',  help='Euclidean distance as face recognition mode.')
+    args = vars(parser.parse_args())
+
+    global target_im, inp_folder, outp_folder, blur_mode, rec_mode
+    target_im = args['target']
+    inp_folder = args['input']
+    outp_folder = args['output']
+    if args['blur']:
+        blur_mode = 'target'
+    else:
+        blur_mode = 'others'
+    if args['cosine']:
+        rec_mode = 'cosine'
+    else:
+        rec_mode = 'euclidean'
+    #mainFaceV = find_faces(f'{input_folder}ravi_pep.JPG')[0]['embedding']
+    #faces = find_faces(f'{input_folder}ravi_daan.JPG')
+    #for i, face in enumerate(faces):
+    #    v = face["embedding"]
+    #    fa = face["facial_area"]
+    #    print("drawing face", i)
+    #    # If face is not similar, break.
+    #    if not is_similar(np.array(mainFaceV), np.array(v), mode='euclidean') :
+    #        continue
+    #    im = draw_face_rect(f'{input_folder}ravi_daan.JPG', fa)
+    #    cv2.imwrite(f"rect{i}.png", im)
 
 
 
