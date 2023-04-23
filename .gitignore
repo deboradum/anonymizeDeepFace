@@ -2,3 +2,5 @@ inps
 inputs
 outputs
 __pycache__
+*.png
+*.jpg
