@@ -29,6 +29,14 @@ def draw_face_rect(img_path, face_area, img=None):
     return new_im
 
 
+def draw_number(img, face_area, number):
+    lx = face_area["x"]
+    rx = lx + face_area["w"]
+    ty = face_area["y"]     
+    by = ty + face_area["h"]
+
+    return cv2.putText(img, str(number), (lx, ty), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 3)
+
 # Checks if a face is similar (enough) to the main face.
 # Accepted modes: cosine or euclidean.
 def is_similar(main_face, check_face):
@@ -86,7 +94,19 @@ if __name__ == '__main__':
     if not os.path.exists(outp_folder):
         os.makedirs(outp_folder)
 
-    targetFaceV = find_faces(target_im)[0]['embedding']
+    # Get target face vector.
+    targetFace = find_faces(target_im)
+    found = False
+    for i, face in enumerate(targetFace):
+        targetFaceV = face['embedding']
+        fa = face['facial_area']
+        if fa['w'] > 500 and fa['h'] > 500:
+            found = True
+            break
+    if not found:
+        print("No valid face detected in target image. Exiting.")
+        exit()
+
     for f in listdir(inp_folder):
         path = os.path.join(inp_folder, f)
         if not os.path.isfile(path) or not accepted_file(f):
