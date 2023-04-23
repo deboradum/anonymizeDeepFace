@@ -6,7 +6,7 @@ import argparse
 from os import listdir
 import os.path
 
-ACCEPTED_FORMATS = ['png', 'PNG', 'jpg', 'jpeg', 'JPG', 'JPEG', 'HEIC']
+ACCEPTED_FORMATS = ['png', 'PNG', 'jpg', 'jpeg', 'JPG', 'JPEG', 'webp']
 
 
 # Finds data of all faces in the image.
@@ -17,8 +17,9 @@ def find_faces(path):
 
 
 # Draws a rectangle around the face. Used for testing.
-def draw_face_rect(img_path, face_area):
-    img = cv2.imread(img_path)
+def draw_face_rect(img_path, face_area, img=None):
+    if img is None:
+        img = cv2.imread(img_path)
     lx = face_area["x"]
     rx = lx + face_area["w"]
     ty = face_area["y"]
@@ -82,6 +83,8 @@ if __name__ == '__main__':
     else:
         rec_mode = 'euclidean'
 
+    if not os.path.exists(outp_folder):
+        os.makedirs(outp_folder)
 
     targetFaceV = find_faces(target_im)[0]['embedding']
     for f in listdir(inp_folder):
@@ -89,7 +92,13 @@ if __name__ == '__main__':
         if not os.path.isfile(path) or not accepted_file(f):
             continue
         print('scanning', f)
-        faces = find_faces(path)
+        try:
+            faces = find_faces(path)
+        except Exception as e:
+            print("No faces found")
+            cv2.imwrite(os.path.join(outp_folder, f), cv2.imread(path))
+            continue
+        im = None
         for i, face in enumerate(faces):
             v = face["embedding"]
             fa = face["facial_area"]
@@ -97,6 +106,10 @@ if __name__ == '__main__':
             if not is_similar(np.array(targetFaceV), np.array(v)) :
                 continue
             print('Found face')
-            im = draw_face_rect(path, fa)
+            im = draw_face_rect(path, fa, img=im)
+
+        if im is not None:
             cv2.imwrite(os.path.join(outp_folder, f), im)
+        else:
+            cv2.imwrite(os.path.join(outp_folder, f), cv2.imread(path))
 
