@@ -32,6 +32,7 @@ def float_range(mini,maxi):
     return float_range_checker
 
 
+# Checks if file is legal (supported image type).
 def accepted_file(filename):
     try:
         suffix = filename.split('.')[-1]
@@ -184,3 +185,4 @@ if __name__ == '__main__':
 
     recognizer = Recognizer(target_im, inp_folder, outp_folder, blur_mode, rec_mode, threshold) 
     recognizer.compare()
+
