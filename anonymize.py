@@ -93,7 +93,6 @@ class Recognizer():
     def is_similar(self, check_face):
         if self.rec_mode == 'cosine':
             cs = np.dot(self.targetFaceV, check_face) / (np.linalg.norm(self.targetFaceV) * np.linalg.norm(check_face))
-            print(cs)
             if cs >= self.threshold:
                 return True
             else:
@@ -122,16 +121,18 @@ class Recognizer():
                 cv2.imwrite(os.path.join(self.output_folder, f), cv2.imread(path))
                 continue
                                                                            
-            # Draws face - NEEDS TO BE BLUR - for every similar face found.
             im = None
             for i, face in enumerate(faces):
                 v = np.array(face["embedding"])
                 fa = face["facial_area"]
                 # If face is not similar, skip it.
-                if not self.is_similar(v) :
-                    continue
-                print('Found face')
-                im = self.blur_face(path, fa, img=im)
+                if not self.is_similar(v):
+                    if self.blur_mode == 'others':
+                        im = self.blur_face(path, fa, img=im)
+                else:
+                    if self.blur_mode == 'target':
+                        print('Found matching face')
+                        im = self.blur_face(path, fa, img=im)
           
             # saves image.
             self.save_image(im, f, path)
@@ -156,10 +157,10 @@ class Recognizer():
         by = ty + facial_area["h"]
 
         to_blur = img[ty:by, lx:rx]
-        #blurred = cv2.GaussianBlur(to_blur, (5,5), 5)
-        blurred = cv2.rotate(to_blur, cv2.ROTATE_180)
-        new_img = img[ty:by, lx:rx] = blurred
-
+        blurred = cv2.GaussianBlur(to_blur, (555,555), 55)
+        new_img = np.copy(img)
+        new_img[ty:by, lx:rx] = blurred
+        
         return new_img
 # --------------------------------------------------------
 
@@ -180,7 +181,8 @@ if __name__ == '__main__':
     target_im = args['target']
     inp_folder = args['input']
     outp_folder = args['output']
-    if args['blur']:
+
+    if args['blur'] is True:
         blur_mode = 'target'
     else:
         blur_mode = 'others'
@@ -195,7 +197,7 @@ if __name__ == '__main__':
             threshold = 0.5
     else:
         threshold = args['threshold']
-    
+
     # Creates output folder if this folder does not exist yet.
     if not os.path.exists(outp_folder):
         os.makedirs(outp_folder)
