@@ -8,7 +8,7 @@ The program can be launched as follows:
 ```
 python3 anonymize.py -t '<target_img_path>' -i '<input_folder>' [-o '<output_folder>'] [-b 'True'] (-c | -e) [-th <threshold_value>]
 ```
-With:
+With parameters:
 ```
 -h, --help                  show this help message and exit
 -t, --target TARGET         Image path containing target face.
@@ -22,5 +22,6 @@ With:
                             Default for cosine similarity is 0.65 & default for euclidean distance is 0.5.
 ```
 
-Demo:
+## Demo:
+https://user-images.githubusercontent.com/88938032/234102095-b521e552-58e4-4512-a4f9-0af2d49db25d.mov
 
