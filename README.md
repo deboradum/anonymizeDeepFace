@@ -2,7 +2,7 @@
 
 To gain some experience with my new Jetson Nano and Artificial Intelligence, I decided to create this program. When starting the program, a path to the image containing the target face needs to be provided, as well as the name of the folder where to images that are to be blurred are contained, and the name of the output folder. Then, using [Deepface](https://github.com/serengil/deepface), the target face vector is calculated. Next, for evert face detected in the input images that are to be blurred, either [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity) or [euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) is performed. When a face is detected to be similar enough. it is blurred. The program can also be configured to blur all faces *except* for the target face.
 
-When a taret image with more than one face is given, the largest face is chosen as the target.
+When a target image with more than one face is given, the largest face is chosen as the target.
 
 The program can be launched as follows:
 ```
