@@ -131,7 +131,7 @@ class Recognizer():
                 if not self.is_similar(v) :
                     continue
                 print('Found face')
-                im = self.draw_face_rect(path, fa, img=im)
+                im = self.blur_face(path, fa, img=im)
           
             # saves image.
             self.save_image(im, f, path)
@@ -144,6 +144,23 @@ class Recognizer():
         # If no face was found, saves unaltered image.
         else:
             cv2.imwrite(os.path.join(self.output_folder, name), cv2.imread(path))
+
+
+    def blur_face(self, img_path, facial_area, img=None):
+        if img is None:
+            img = cv2.imread(img_path)
+        
+        lx = facial_area["x"]
+        rx = lx + facial_area["w"]
+        ty = facial_area["y"]
+        by = ty + facial_area["h"]
+
+        to_blur = img[ty:by, lx:rx]
+        #blurred = cv2.GaussianBlur(to_blur, (5,5), 5)
+        blurred = cv2.rotate(to_blur, cv2.ROTATE_180)
+        new_img = img[ty:by, lx:rx] = blurred
+
+        return new_img
 # --------------------------------------------------------
 
 if __name__ == '__main__':
